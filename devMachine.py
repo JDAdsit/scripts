@@ -4,12 +4,14 @@ import sys
 import subprocess
 import re
 import fileinput
+import os
 		
 username = sys.argv[1]
+sitesDirectory = "/Users/"+username+"/Sites"
 
 def editHosts():
 	filename = '/etc/hosts'
-	p = subprocess.call(["sudo", "cp", filename, filename+".backup"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+	subprocess.call(["sudo", "cp", filename, filename+".backup"])
 	hostsFile = open(filename, 'a+') 
 
 	hostsFile.write("127.0.0.1       local.solutionreach.com\n")
@@ -19,7 +21,7 @@ def editHosts():
 	hostsFile.write("<VirtualHost *:80>\n")
 	hostsFile.write("   ServerName local.solutionreach.com\n")
 	hostsFile.write("   ServerAlias local.solutionreach.com\n")
-	hostsFile.write("   DocumentRoot /Users/"+username+"/Sites/marketing-site\n")
+	hostsFile.write("   DocumentRoot "+sitesDirectory+"/marketing-site\n")
 	hostsFile.write("</VirtualHost>\n\n")
 
 	hostsFile.write("<VirtualHost *:80>\n")
@@ -31,7 +33,7 @@ def editHosts():
 	hostsFile.write("<VirtualHost *:80>\n")
 	hostsFile.write("   ServerName localsites\n")
 	hostsFile.write("   ServerAlias localsites\n")
-	hostsFile.write("   DocumentRoot /Users/"+username+"/Sites\n")
+	hostsFile.write("   DocumentRoot "+sitesDirectory+"\n")
 	hostsFile.write("</VirtualHost>\n")
 
 	hostsFile.close()
@@ -41,24 +43,24 @@ def editHosts():
 
 def editHttpdVhosts():
 	filename = '/etc/apache2/extra/httpd-vhosts.conf'
-	p = subprocess.call(["sudo", "cp", filename, filename+".backup"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+	subprocess.call(["sudo", "cp", filename, filename+".backup"])
 	httpdvhostFile = open(filename, 'a+') 
 
 	httpdvhostFile.write("<VirtualHost *:80>\n")
-	httpdvhostFile.write("    DocumentRoot '/Users/"+username+"/Sites/marketing-site/'\n")
+	httpdvhostFile.write("    DocumentRoot '"+sitesDirectory+"/marketing-site/'\n")
 	httpdvhostFile.write("    ServerName local.solutionreach.com\n")
 	httpdvhostFile.write("    Options Indexes FollowSymLinks Includes ExecCGI\n")
 	httpdvhostFile.write("</VirtualHost>\n\n")
 
 	httpdvhostFile.write("<VirtualHost *:80>\n")
 	httpdvhostFile.write("    #DocumentRoot '/Library/WebServer/Documents'\n")
-	httpdvhostFile.write("    DocumentRoot '/Users/"+username+"/Sites/phpMyAdmin'\n")
+	httpdvhostFile.write("    DocumentRoot '"+sitesDirectory+"/phpMyAdmin'\n")
 	httpdvhostFile.write("    ServerName localhost\n")
 	httpdvhostFile.write("    Options Indexes FollowSymLinks Includes ExecCGI\n")
 	httpdvhostFile.write("</VirtualHost>\n\n")
 
 	httpdvhostFile.write("<VirtualHost *:80>\n")
-	httpdvhostFile.write("	DocumentRoot '/Users/"+username+"/Sites'\n")
+	httpdvhostFile.write("	DocumentRoot '"+sitesDirectory+"'\n")
 	httpdvhostFile.write("	ServerName localsites\n")
 	httpdvhostFile.write("	Options Indexes FollowSymLinks Includes ExecCGI\n")
 	httpdvhostFile.write("</VirtualHost>\n")
@@ -69,7 +71,7 @@ def editHttpdVhosts():
 
 def editusernameconf():
 	filename = '/etc/apache2/users/'+username+'.conf'
-	p = subprocess.call(["sudo", "cp", filename, filename+".backup"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+	subprocess.call(["sudo", "cp", filename, filename+".backup"])
 
 	with open(filename, "w") as fout:
 		with open(filename+".backup", "r") as fin:
@@ -86,7 +88,7 @@ def editusernameconf():
 
 def edithttpdconf():
 	filename = '/etc/apache2/httpd.conf'
-	p = subprocess.call(["sudo", "cp", filename, filename+".backup"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+	subprocess.call(["sudo", "cp", filename, filename+".backup"])
 
 	with open(filename, "w") as fout:
 		with open(filename+".backup", "r") as fin:
@@ -146,9 +148,9 @@ def edithttpdconf():
 				elif line == "    Require all denied\n</Directory>":
 					fout.write(line.replace("    Require all denied\n</Directory>", "    Options Indexes FollowSymLinks Includes ExecCGI\n    Order deny,allow\n    Allow from all\n", 1))
 				elif line == 'DocumentRoot "/Library/WebServer/Documents"\n':
-					fout.write(line.replace('DocumentRoot "/Library/WebServer/Documents"\n', 'DocumentRoot "/Users/'+username+'/Sites"\n', 1))
+					fout.write(line.replace('DocumentRoot "/Library/WebServer/Documents"\n', 'DocumentRoot "'+sitesDirectory+'"\n', 1))
 				elif line == '<Directory "/Library/WebServer/Documents">\n':
-					fout.write(line.replace('<Directory "/Library/WebServer/Documents">\n', '<Directory "/Users/'+username+'/Sites">\n', 1))
+					fout.write(line.replace('<Directory "/Library/WebServer/Documents">\n', '<Directory "'+sitesDirectory+'">\n', 1))
 				else:
 					fout.write(line)
 
@@ -156,17 +158,17 @@ def edithttpdconf():
 # edithttpdconf()
 
 def createDB():
-	p = subprocess.call(["sudo", "mysql", "-u", "root", "-p", "pass", "solre", "<", "dump.sql"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+	p = subprocess.call(["sudo", "mysql", "-u", "root", "-p", "pass", "solre", "<", "dump.sql"])
 
 # createDB()
 
 def phpmyadmin():
-	p = subprocess.call(["tar", "xopf", "phpMyAdmin-4.3.8-english.tar.gz"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-	p = subprocess.call(["sudo", "chmod", "-R", "777", "phpMyAdmin-4.3.8-english/"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+	subprocess.call(["tar", "xopf", "phpMyAdmin-4.3.8-english.tar.gz"])
+	subprocess.call(["sudo", "chmod", "-R", "777", "phpMyAdmin-4.3.8-english/"])
 
 	filename = 'phpMyAdmin-4.3.8-english/config.inc.php'
 	filenameIn = 'phpMyAdmin-4.3.8-english/config.sample.inc.php'
-	p = subprocess.call(["sudo", "cp", filenameIn, filename], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+	subprocess.call(["sudo", "cp", filenameIn, filename])
 
 	with open(filename, "w") as fout:
 		with open(filenameIn, "r") as fin:
@@ -176,6 +178,14 @@ def phpmyadmin():
 				else:
 					fout.write(line)
 
-	p = subprocess.call(["mv", "phpMyAdmin-4.3.8-english", "/Users/"+username+"/Sites/phpMyAdmin1"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+	subprocess.call(["mv", "phpMyAdmin-4.3.8-english", ""+sitesDirectory+"/phpMyAdmin"])
 
-phpmyadmin();
+# phpmyadmin()
+
+def pullgit():
+	gitCloneDirectory = sitesDirectory+"/"
+	if not os.path.exists(gitCloneDirectory):
+		os.mkdir(gitCloneDirectory)
+	subprocess.call(["git", "clone", username+"@neptune:/home/git/marketing-site.git"], cwd=gitCloneDirectory)
+
+# pullgit()
