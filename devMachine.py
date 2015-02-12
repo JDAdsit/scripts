@@ -154,3 +154,28 @@ def edithttpdconf():
 
 
 # edithttpdconf()
+
+def createDB():
+	p = subprocess.call(["sudo", "mysql", "-u", "root", "-p", "pass", "solre", "<", "dump.sql"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+
+# createDB()
+
+def phpmyadmin():
+	p = subprocess.call(["tar", "xopf", "phpMyAdmin-4.3.8-english.tar.gz"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+	p = subprocess.call(["sudo", "chmod", "-R", "777", "phpMyAdmin-4.3.8-english/"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+
+	filename = 'phpMyAdmin-4.3.8-english/config.inc.php'
+	filenameIn = 'phpMyAdmin-4.3.8-english/config.sample.inc.php'
+	p = subprocess.call(["sudo", "cp", filenameIn, filename], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+
+	with open(filename, "w") as fout:
+		with open(filenameIn, "r") as fin:
+			for line in fin:
+				if line == "$cfg['Servers'][$i]['AllowNoPassword'] = false;\n":
+					fout.write(line.replace("$cfg['Servers'][$i]['AllowNoPassword'] = false;\n", "$cfg['Servers'][$i]['AllowNoPassword'] = false;\n$cfg['Servers'][$i]['user'] = 'root';\n$cfg['Servers'][$i]['password'] = 'pass';\n", 1))
+				else:
+					fout.write(line)
+
+	p = subprocess.call(["mv", "phpMyAdmin-4.3.8-english", "/Users/"+username+"/Sites/phpMyAdmin1"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+
+phpmyadmin();
